@@ -10,6 +10,11 @@ AI 응답의 정확성과 안전성을 보장하기 위한 팩트체크 및 콘�
 
 
 
+https://github.com/user-attachments/assets/486a1354-9e7d-4951-99ad-596338773ece
+
+
+
+
 ## 프로젝트 구조
 
 ```
