@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "user-Search_FactCheck_ContentsFilter": {
+      "command":"/Users/admin/Desktop/A2A_MCP/.venv/bin/python3.13",
+      "type": "stdio",
+      "args": ["/Users/admin/Desktop/A2A_MCP/080493/Search_FactCheck_ContentsFilter/mcp_server.py"]
+    }
+  }
+}

@@ -1,8 +1,14 @@
 # MCP 서버 모듈
 # 외부 클라이언트(Cursor 등)와 연결되는 진입점으로, 전체 팩트체크 및 콘텐츠 필터링 파이프라인을 오케스트레이션합니다.
 
+import os
+import sys
+
 import grpc
 from mcp.server.fastmcp import FastMCP
+
+# `agents/` 폴더 아래의 generated protobuf 모듈을 mcp_server 실행 컨텍스트에서 import할 수 있게 함
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "agents")))
 
 import agents_pb2
 import agents_pb2_grpc

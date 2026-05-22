@@ -1,0 +1,16 @@
+{
+  "refiner": {
+    "prompt_template": "다음 질문을 웹 검색 요청에서 분리하여, 제품 기획 근거로 사용할 수 있는 간결한 요약 질문으로 정제하세요:\n{question}"
+  },
+  "responder": {
+    "prompt_template": "질문: {refined}\n다음 세 항목으로만 간결하게 답변하세요:\n- 기술 트렌드\n- 공급망 변화\n- 시장 전망\n광고성 인트로와 쓸데없는 부연설명은 제외하고, 각 항목을 핵심만 요약하세요.",
+    "temperature": 0.3
+  },
+  "fact_checker": {
+    "max_results": 10,
+    "search_query_prefix": ""
+  },
+  "hallucination_filter": {
+    "revision_threshold": "high"
+  }
+}
