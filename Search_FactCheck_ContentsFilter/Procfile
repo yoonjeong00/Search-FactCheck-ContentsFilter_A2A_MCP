@@ -1,0 +1,6 @@
+finalizer: python agents/final_response.py
+hallu: python agents/hallucination_filter.py
+fact_checker: python agents/fact_checker.py
+responder: python agents/responder.py
+refiner: python agents/question_refiner.py
+mcp: python mcp_server.py
