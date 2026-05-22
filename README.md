@@ -2,7 +2,7 @@
 ## 📝 License & Attributions
 
 - 본 프로젝트의 베이스 코드는 도서 **《A2A × MCP 멀티에이전트 오케스트레이션 실전》 (서지영 저, 길벗)**의 실습 소스코드를 기반으로 합니다.
-- 원본 저장소: https://github.com/gilbutITbook/080493.git
+- 원본 저장소: https://github.com/gilbutITbook/080493.git - Search FactCheck ContentsFilter
 - 원본 도서 예제 코드의 저작권은 원작자(서지영) 및 길벗출판사에 있으며, 본 저장소의 코드는 개인 학습 및 포트폴리오 목적으로 사용되었습니다.
 - 본인이 추가하고 고도화한 기능 및 수정 코드에 대해서는 본 저장소의 **MIT License**를 적용합니다.
 
