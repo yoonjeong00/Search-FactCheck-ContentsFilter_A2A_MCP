@@ -5,8 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "honcho",
     "openai",
     "langchain",
     "langchain-tavily",
-    "python-dotenv"
+    "python-dotenv",
+    "gradio"
 ]
