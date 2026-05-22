@@ -4,10 +4,15 @@
 import os, sys
 # 상위 디렉토리를 Python 경로에 추가하여 agents_pb2 모듈을 import할 수 있도록 함
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from dotenv import load_dotenv
+
+# 현재 파일 기준 상위 폴더의 .env를 항상 로드
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 import asyncio
 import grpc
 from openai import AsyncOpenAI
+from runtime_config import load as load_cfg
 
 import agents_pb2
 import agents_pb2_grpc
@@ -32,16 +37,14 @@ class ResponderService(agents_pb2_grpc.ResponderServiceServicer):
         초안 답변 생성 메서드
         정제된 질문을 받아 사실 기반의 초안 응답을 생성합니다.
         """
-        # 정제된 질문 추출 및 공백 제거
+        # runtime_config.json에서 프롬프트 및 temperature 로드
+        cfg = load_cfg()["responder"]
         refined = request.refined.strip()
-        # 사실 기반 답변 생성을 위한 프롬프트 구성
-        prompt = f"질문: {refined}\n사실 기반으로 답변하세요."
-        # OpenAI API를 통해 답변 생성
-        # temperature=0.3으로 설정하여 적절한 창의성과 안정성의 균형을 유지합니다
+        prompt = cfg["prompt_template"].replace("{refined}", refined)
         r = await self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
+            temperature=cfg["temperature"],
         )
         # 생성된 답변 추출 및 공백 제거
         answer = r.choices[0].message.content.strip()

@@ -7,16 +7,15 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import grpc
 import asyncio
-
-# Tavily Search API를 사용하기 위한 LangChain 통합 패키지
 from langchain_tavily import TavilySearch
+from runtime_config import load as load_cfg
 
 import agents_pb2
 import agents_pb2_grpc
 
 # 환경 변수 로드 (.env 파일에서 API 키를 읽어옴)
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 class FactCheckerService(agents_pb2_grpc.FactCheckerServiceServicer):
     """
@@ -24,29 +23,30 @@ class FactCheckerService(agents_pb2_grpc.FactCheckerServiceServicer):
     gRPC 서비스로 구현되어 있으며, 질문에 대한 팩트 검증을 수행합니다.
     """
     def __init__(self):
-        """서비스 초기화 - Tavily API 키 검증 및 검색 도구 생성"""
-        key = os.getenv("TAVILY_API_KEY")
-        if not key:
+        """서비스 초기화 - Tavily API 키 검증"""
+        self.tavily_key = os.getenv("TAVILY_API_KEY")
+        if not self.tavily_key:
             raise RuntimeError("TAVILY_API_KEY not set")
-
-        # Tavily Search 도구 초기화
-        # max_results=10으로 설정하여 최대 10개의 검색 결과를 가져옵니다
-        self.tool = TavilySearch(
-            api_key=key,
-            max_results=10
-        )
 
     async def Check(self, request, context):
         """
         팩트체크 메서드
         정제된 질문을 받아 Tavily Search를 통해 관련 정보를 검색하고 검증합니다.
         """
-        # 정제된 질문 추출 및 공백 제거
+        # runtime_config.json에서 검색 설정 로드
+        cfg = load_cfg()["fact_checker"]
+        max_results = int(cfg["max_results"])
+        prefix = cfg.get("search_query_prefix", "").strip()
+
+        # 요청마다 설정을 반영한 검색 도구 생성
+        tool = TavilySearch(api_key=self.tavily_key, max_results=max_results)
+
         q = request.refined.strip()
+        if prefix:
+            q = f"{prefix} {q}"
 
         try:
-            # Tavily Search API를 통해 질문에 대한 검색 수행
-            result_dict = self.tool.invoke(q)
+            result_dict = tool.invoke(q)
         except Exception as e:
             # API 호출 실패 시 에러 로그 출력 및 빈 결과 반환
             print("!! Tavily error:", e)

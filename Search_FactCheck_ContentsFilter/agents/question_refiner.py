@@ -4,10 +4,16 @@
 import os, sys
 # 상위 디렉토리를 Python 경로에 추가하여 agents_pb2 모듈을 import할 수 있도록 함
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from dotenv import load_dotenv
+
+# 현재 파일 기준 상위 폴더의 .env를 항상 로드
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 import asyncio
 import grpc
+import re
 from openai import AsyncOpenAI
+from runtime_config import load as load_cfg
 
 import agents_pb2
 import agents_pb2_grpc
@@ -45,26 +51,56 @@ class RefinerService(agents_pb2_grpc.RefinerServiceServicer):
         질문 정제부터 최종 응답 생성까지 전체 파이프라인을 실행합니다.
         에이전트 간 직접 통신을 통해 처리됩니다.
         """
-        # 1단계: 질문 정제
+        # 1단계: 질문 정제 (runtime_config.json에서 프롬프트 로드)
+        cfg = load_cfg()["refiner"]
         refined_q = request.user_question.strip()
-        prompt = f"다음 질문을 핵심만 간결하게 정제:\n{refined_q}"
+        prompt = cfg["prompt_template"].replace("{question}", refined_q)
         r = await self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0
         )
         refined = r.choices[0].message.content.strip()
-        
-        # 2단계: Responder와 FactChecker를 병렬로 호출
-        ans_task = self.responder.Answer(
-            agents_pb2.AnswerRequest(refined=refined)
+        # 사용자 요청에 포함된 웹 검색/문서 수집 지시를 제거하고,
+        # 제품 기획 근거 요약 질문으로 정제합니다.
+        refined = re.sub(
+            r"(?i)(구글|네이버|웹\s*검색|실시간\s*검색|상위\s*5개|문서\s*전체|스크랩|수집|추출|검색 결과)",
+            "",
+            refined,
         )
-        fact_task = self.fact_checker.Check(
+        refined = re.sub(r"\s+", " ", refined).strip()
+        refined = (
+            f"{refined}\n\n"
+            "다음 3가지 항목으로만 간결하게 요약해 주세요:\n"
+            "1. 기술 트렌드\n"
+            "2. 공급망 변화\n"
+            "3. 시장 전망\n"
+            "광고나 불필요한 인트로 문구는 제외하세요."
+        )
+        
+        # 2단계: FactChecker로 검증/출처 기반 정보를 확보하고,
+        # 그 결과를 Responder에게 전달해 근거 기반 요약을 생성합니다.
+        facts = await self.fact_checker.Check(
             agents_pb2.FactCheckRequest(refined=refined)
         )
-        
-        # 병렬 작업 완료 대기
-        answer, facts = await asyncio.gather(ans_task, fact_task)
+
+        fact_items = []
+        for idx, fact in enumerate(facts.facts[:5], start=1):
+            content = fact.content.replace("\n", " ").strip()
+            if content:
+                fact_items.append(f"{idx}. {content} [출처: {fact.url}]")
+        fact_summary = "\n".join(fact_items) if fact_items else "관련 검색 결과가 없습니다."
+
+        responder_prompt = (
+            f"{refined}\n\n"
+            "아래 검색 결과를 근거로 답변을 생성하세요:\n"
+            f"{fact_summary}\n\n"
+            "각 항목별로 핵심 내용만 간결하게 정리하고, 광고성 인트로는 제외하세요."
+        )
+
+        answer = await self.responder.Answer(
+            agents_pb2.AnswerRequest(refined=responder_prompt)
+        )
         
         # 3단계: HalluService의 AnalyzeAndFinalize를 호출
         # 이 메서드는 내부에서 Finalizer를 호출하여 최종 응답을 생성합니다

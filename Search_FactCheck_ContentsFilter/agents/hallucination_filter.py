@@ -4,11 +4,16 @@
 import os, sys
 # 상위 디렉토리를 Python 경로에 추가하여 agents_pb2 모듈을 import할 수 있도록 함
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from dotenv import load_dotenv
+
+# 현재 파일 기준 상위 폴더의 .env를 항상 로드
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 import grpc
 import json
 import asyncio
 from openai import AsyncOpenAI
+from runtime_config import load as load_cfg
 
 import agents_pb2
 import agents_pb2_grpc
@@ -67,11 +72,12 @@ class HalluService(agents_pb2_grpc.HalluServiceServicer):
             )
 
         # 2단계: 환각 감지 수행
-        # 팩트 데이터와 답변을 비교하여 환각 여부를 판단합니다
         hallu = await self._detect(answer, facts)
 
-        # 3단계: 환각 수준이 높은 경우 답변 수정
-        if hallu["hallucination_level"] == "high":
+        # 3단계: 임계값 이상이면 답변 수정 (runtime_config.json에서 로드)
+        threshold = load_cfg()["hallucination_filter"]["revision_threshold"]
+        _order = {"low": 0, "medium": 1, "high": 2}
+        if _order.get(hallu["hallucination_level"], -1) >= _order.get(threshold, 2):
             # Responder 서비스를 호출하여 답변을 더 보수적으로 수정
             revised = await self.responder.Revise(
                 agents_pb2.ReviseRequest(

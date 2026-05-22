@@ -47,9 +47,10 @@ class FinalizerService(agents_pb2_grpc.FinalizerServiceServicer):
         # 신뢰도 메시지, 응답 내용, 환각 수준, 참고 소스를 포함합니다
         final = (
             f"{msg}\n\n"
-            f"[응답]\n{answer}\n\n"
-            f"Hallucination: {hallu.hallucination_level}\n\n"
-            f"참고 소스:\n{src}"
+            "[최종 요약]\n"
+            f"{answer}\n\n"
+            f"[환각 수준] {hallu.hallucination_level}\n\n"
+            f"[출처]\n{src}"
         )
 
         # gRPC 응답 반환
@@ -69,7 +70,7 @@ async def serve():
     # 포트 50055에서 서비스 시작 (모든 인터페이스에서 수신)
     server.add_insecure_port("[::]:50055")
     await server.start()
-    print("FinalizerService ON 50055")
+    #print("FinalizerService ON 50055")
     # 서버 종료 대기
     await server.wait_for_termination()
 
