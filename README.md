@@ -9,6 +9,7 @@ https://github.com/user-attachments/assets/d4f8066b-1fb6-42ac-a139-1f095b1dbb32
 
 ## 🔧 고도화 (Improvements)
 강의 예제를 실제 운영 가능한 수준으로 끌어올리며 진행한 핵심 개선 작업입니다.
+
 **1. 운영 자동화 — 수동 기동 → 단일 명령 표준화**
 
 Before: 5개 에이전트 + MCP를 매번 수동 실행 → 누락·중복 빈번, 장애 지점 파악 지연
