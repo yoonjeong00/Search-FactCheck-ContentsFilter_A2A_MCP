@@ -1,21 +1,31 @@
 # [A2A × MCP 멀티에이전트 오케스트레이션]
-## 📝 License & Attributions
 
-- 본 프로젝트의 베이스 코드는 도서 **《A2A × MCP 멀티에이전트 오케스트레이션 실전》 (서지영 저, 길벗)**의 실습 소스코드를 기반으로 합니다.
-- 원본 저장소: https://github.com/gilbutITbook/080493.git - Search FactCheck ContentsFilter
-- 원본 도서 예제 코드의 저작권은 원작자(서지영) 및 길벗출판사에 있으며, 본 저장소의 코드는 개인 학습 및 포트폴리오 목적으로 사용되었습니다.
-- 본인이 추가하고 고도화한 기능 및 수정 코드에 대해서는 본 저장소의 **MIT License**를 적용합니다.
-
-Commits 내역에서 '기존 원본 코드'와 구분된 '고도화 구간'을 확인하실 수 있으며,
-해당 README.md 에서도 정리되어 있으니 참고하시길 바랍니다.
-
-# Search FactCheck ContentsFilter
+## Search FactCheck ContentsFilter
 
 AI 응답의 정확성과 안전성을 보장하기 위한 팩트체크 및 콘텐츠 필터링 기능을 제공하는 Model Context Protocol (MCP) 서버입니다.
 
+https://github.com/user-attachments/assets/d4f8066b-1fb6-42ac-a139-1f095b1dbb32
 
-https://github.com/user-attachments/assets/486a1354-9e7d-4951-99ad-596338773ece
 
+## 🔧 고도화 (Improvements)
+강의 예제를 실제 운영 가능한 수준으로 끌어올리며 진행한 핵심 개선 작업입니다.
+**1. 운영 자동화 — 수동 기동 → 단일 명령 표준화**
+
+Before: 5개 에이전트 + MCP를 매번 수동 실행 → 누락·중복 빈번, 장애 지점 파악 지연
+After: Procfile + honcho 기반 통합 기동 구조로 up / down / status / logs 명령 표준화
+결과: 단일 명령으로 전체 파이프라인 기동·상태 확인 가능, 장애 대응 속도 개선
+
+**2. 신뢰성 — 에이전트별 '기대 역할 vs 실제 동작' 점검 후 판정 로직 수정**
+
+Refiner: 특정 도메인으로 질문이 강제 변환되던 문제 → 순수 검색 최적화 질문 추출로 전환
+Responder: 검색 결과를 무시할 수 있던 구조 → "근거로만 답변, 없으면 확인 불가 표시" 명시
+Filter: 환각 가능성만 통보 → 실제 검색 팩트를 함께 전달해 교정
+Finalizer: 신뢰도가 사실상 2단계로 동작 → 실제 3단계로 작동하도록 판정 기준 수정
+
+**3. 사용성 — JSON/터미널 출력 → Gradio UI 시각화**
+
+Before: 정규표현식 섞인 JSON·채팅 로그 → 가독성 낮고 가중치·질문 수정이 번거로움
+After: Gradio UI로 질문 입력·가중치 조절·출처·진행 상태·출력 시간을 한 화면에서 확인
 
 
 ## 프로젝트 구조
@@ -265,4 +275,10 @@ Cursor 등 MCP 호환 클라이언트가 로컬 프로세스를 실행해 `ask` 
 - `ask` 단일 엔드포인트만 제공
 - gRPC 에이전트가 모두 기동된 상태여야 정상 응답
 - OpenAI / Tavily API 키 및 네트워크 상태에 영향 받음
+
+📝 License & Attributions
+
+베이스 코드는 도서 **《A2A × MCP 멀티에이전트 오케스트레이션 실전》(서지영 저, 길벗)**의 실습 소스를 기반으로 합니다. https://github.com/gilbutITbook/080493.git - Search FactCheck ContentsFilter
+원본 예제의 저작권은 원작자 및 출판사에 있으며, 본 저장소는 개인 학습·포트폴리오 목적입니다.
+직접 추가·고도화한 코드에 한해 MIT License를 적용하며, 고도화 구간은 commit 내역과 위 README에서 확인하실 수 있습니다.
 
