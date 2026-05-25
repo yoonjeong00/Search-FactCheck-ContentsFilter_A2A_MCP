@@ -1,4 +1,4 @@
-# [A2A × MCP 멀티에이전트 오케스트레이션]
+# 검증 가능한 답변을 위한 역할 분리형 에이전트 파이프라인
 
 ## Search FactCheck ContentsFilter
 
